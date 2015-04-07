@@ -5,101 +5,7 @@
 #include <libopencm3/stm32/gpio.h>
 #include <libopencm3/usb/usbd.h>
 #include <libopencm3/usb/cdc.h>
-
-#define SRF10 0x70
-
-static uint16_t get_cm(uint32_t i2c, uint8_t sensor)
-{
-	uint32_t reg32 __attribute__((unused));
-	uint16_t cm;
-
-	i2c_send_start(i2c);
-
-	while (!((I2C_SR1(i2c) & I2C_SR1_SB)
-		& (I2C_SR2(i2c) & (I2C_SR2_MSL | I2C_SR2_BUSY))));
-
-	i2c_send_7bit_address(i2c, sensor, I2C_WRITE);
-
-	while (!(I2C_SR1(i2c) & I2C_SR1_ADDR));
-
-	reg32 = I2C_SR2(i2c);
-
-	i2c_send_data(i2c, 0x02);
-	while (!(I2C_SR1(i2c) & (I2C_SR1_BTF | I2C_SR1_TxE)));
-
-	i2c_send_start(i2c);
-
-	while (!((I2C_SR1(i2c) & I2C_SR1_SB)
-		& (I2C_SR2(i2c) & (I2C_SR2_MSL | I2C_SR2_BUSY))));
-
-	i2c_send_7bit_address(i2c, sensor, I2C_READ); 
-
-	I2C_CR1(i2c) |= (I2C_CR1_POS | I2C_CR1_ACK);
-
-	while (!(I2C_SR1(i2c) & I2C_SR1_ADDR));
-
-	reg32 = I2C_SR2(i2c);
-
-	I2C_CR1(i2c) &= ~I2C_CR1_ACK;
-
-	while (!(I2C_SR1(i2c) & I2C_SR1_BTF));
-	cm = (uint16_t)(I2C_DR(i2c) << 8); /* MSB */
-
-	I2C_CR1(i2c) |= I2C_CR1_STOP;
-
-	cm |= I2C_DR(i2c); /* LSB */
-
-	I2C_CR1(i2c) &= ~I2C_CR1_POS;
-
-	return cm;
-}
-
-static uint8_t measurement_successful(uint32_t i2c, uint8_t address) {
-	uint32_t reg32 __attribute__((unused));
-	uint8_t result;
-
-	i2c_send_start(i2c);
-	while (!((I2C_SR1(i2c) & I2C_SR1_SB)
-		& (I2C_SR2(i2c) & (I2C_SR2_MSL | I2C_SR2_BUSY))));
-	i2c_send_7bit_address(i2c, address, I2C_WRITE);
-	while (!(I2C_SR1(i2c) & I2C_SR1_ADDR));
-	reg32 = I2C_SR2(i2c);
-	i2c_send_data(i2c, 0x00);
-	while (!(I2C_SR1(I2C1) & (I2C_SR1_BTF | I2C_SR1_TxE)));
-
-	i2c_send_start(i2c);
-	while (!((I2C_SR1(i2c) & I2C_SR1_SB)
-		& (I2C_SR2(i2c) & (I2C_SR2_MSL | I2C_SR2_BUSY))));
-	i2c_send_7bit_address(i2c, address, I2C_READ);
-	while (!(I2C_SR1(i2c) & I2C_SR1_ADDR));
-	reg32 = I2C_SR2(i2c);
-	while (!(I2C_SR1(i2c) & I2C_SR1_BTF));
-	i2c_nack_current(i2c);
-	result = i2c_get_data(i2c);
-	//while (!(I2C_SR1(I2C1) & (I2C_SR1_BTF | I2C_SR1_TxE)));
-	i2c_send_stop(i2c);
-
-	// return result;
-	return result == 255;
-	// returns 0 if successful
-	// returns 1 if unsuccessful
-}
-
-static void initiate_measurement(uint32_t i2c, uint8_t address) {
-	uint32_t reg32 __attribute__((unused));
-
-	i2c_send_start(i2c);
-	while (!((I2C_SR1(i2c) & I2C_SR1_SB)
-		& (I2C_SR2(i2c) & (I2C_SR2_MSL | I2C_SR2_BUSY))));
-	i2c_send_7bit_address(i2c, address, I2C_WRITE);
-	while (!(I2C_SR1(i2c) & I2C_SR1_ADDR));
-	reg32 = I2C_SR2(i2c);
-	i2c_send_data(i2c, 0x00);
-	while (!(I2C_SR1(i2c) & I2C_SR1_BTF));
-	i2c_send_data(i2c, 0x51);
-	while (!(I2C_SR1(i2c) & (I2C_SR1_BTF | I2C_SR1_TxE)));
-	i2c_send_stop(i2c);
-}
+#include "srf10.h"
 
 static const struct usb_device_descriptor dev = {
 	.bLength = USB_DT_DEVICE_SIZE,
@@ -274,9 +180,9 @@ static void cdcacm_data_rx_cb(usbd_device *usbd_dev, uint8_t ep)
 	(void)ep;
 	(void)usbd_dev;
 
-	initiate_measurement(I2C1, SRF10);
+	srf10_start_measurement(I2C1, SRF10_SENSOR0, SRF10_MEAS_CM);
 
-	while(measurement_successful(I2C1, 0x70));
+	while(srf10_mesurement_successful(I2C1, SRF10_SENSOR0));
 	for(i = 0; i < 160000; i++)
 		__asm__("nop");
 
@@ -285,7 +191,7 @@ static void cdcacm_data_rx_cb(usbd_device *usbd_dev, uint8_t ep)
 	//buf[3] = ']';
 	//itoa(get_cm(I2C1, 0x70), buf + 5, 10);
 	//measurement_successful(I2C1, 0x70)
-	sprintf(buf, "[%#2x] %u", measurement_successful(I2C1, SRF10), get_cm(I2C1, SRF10));
+	sprintf(buf, "[%#2x] %u", srf10_mesurement_successful(I2C1, SRF10_SENSOR0), srf10_get_last_measurement(I2C1, SRF10_SENSOR0));
 
 	int len = 20;
 
