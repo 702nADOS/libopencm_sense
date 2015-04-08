@@ -182,22 +182,16 @@ static void cdcacm_data_rx_cb(usbd_device *usbd_dev, uint8_t ep)
 
 	srf10_start_measurement(I2C1, SRF10_SENSOR0, SRF10_MEAS_CM);
 
-	while(srf10_mesurement_successful(I2C1, SRF10_SENSOR0));
+	/* wait a bit. */
 	for(i = 0; i < 160000; i++)
 		__asm__("nop");
 
-	char buf[20] = "                 \r\n\0";
-	//itoa(measurement_successful(I2C1, 0x70), buf + 1, 16);
-	//buf[3] = ']';
-	//itoa(get_cm(I2C1, 0x70), buf + 5, 10);
-	//measurement_successful(I2C1, 0x70)
-	sprintf(buf, "[%#2x] %u", srf10_mesurement_successful(I2C1, SRF10_SENSOR0), srf10_get_last_measurement(I2C1, SRF10_SENSOR0));
+	/* prepare message. */
+	char buf[64];
+	sprintf(buf, "[%u] %u\r\n\0", srf10_measurement_successful(I2C1, SRF10_SENSOR0), srf10_get_last_measurement(I2C1, SRF10_SENSOR0));
 
-	int len = 20;
-
-	if (len) {
-		usbd_ep_write_packet(usbd_dev, 0x82, buf, len);
-	}
+	/* write packet. */
+	usbd_ep_write_packet(usbd_dev, 0x82, buf, strlen(buf));
 }
 
 static void cdcacm_set_config(usbd_device *usbd_dev, uint16_t wValue)
@@ -230,10 +224,6 @@ static void gpio_setup(void) {
 
 	i2c_set_ccr(I2C1, 0x1e);
 	i2c_set_trise(I2C1, 0x36);
-
-	//i2c_set_own_7bit_slave_address(I2C1, 0x32);
-
-	i2c_enable_ack(I2C1);
 
 	i2c_peripheral_enable(I2C1);
 }
