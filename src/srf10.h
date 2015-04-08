@@ -20,5 +20,5 @@
 #define SRF10_MEAS_MS	0x52
 
 void srf10_start_measurement(uint32_t i2c, uint8_t sensor, uint8_t mode);
-uint8_t srf10_mesurement_successful(uint32_t i2c, uint8_t sensor);
+uint8_t srf10_measurement_successful(uint32_t i2c, uint8_t sensor);
 uint16_t srf10_get_last_measurement(uint32_t i2c, uint8_t sensor);
