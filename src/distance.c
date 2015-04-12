@@ -1,5 +1,6 @@
 #include <stdlib.h>
 #include <stdio.h>
+#include <string.h>
 #include <libopencm3/stm32/i2c.h>
 #include <libopencm3/stm32/rcc.h>
 #include <libopencm3/stm32/gpio.h>
@@ -137,9 +138,8 @@ static const struct usb_config_descriptor config = {
 };
 
 static const char *usb_strings[] = {
-	"Black Sphere Technologies",
-	"CDC-ACM Demo",
-	"DEMO",
+	"STM32 / SRF10",
+	"DEMO"
 };
 
 uint8_t usbd_control_buffer[128];
@@ -188,7 +188,7 @@ static void cdcacm_data_rx_cb(usbd_device *usbd_dev, uint8_t ep)
 
 	/* prepare message. */
 	char buf[64];
-	sprintf(buf, "[%u] %u\r\n\0", srf10_measurement_successful(I2C1, SRF10_SENSOR0), srf10_get_last_measurement(I2C1, SRF10_SENSOR0));
+	sprintf(buf, "[%u] %u\r\n", srf10_measurement_successful(I2C1, SRF10_SENSOR0), srf10_get_last_measurement(I2C1, SRF10_SENSOR0));
 
 	/* write packet. */
 	usbd_ep_write_packet(usbd_dev, 0x82, buf, strlen(buf));
@@ -243,7 +243,7 @@ int main(void) {
 	gpio_set_mode(GPIOC, GPIO_MODE_OUTPUT_2_MHZ,
 		      GPIO_CNF_OUTPUT_PUSHPULL, GPIO11);
 
-	usbd_dev = usbd_init(&stm32f103_usb_driver, &dev, &config, usb_strings, 3, usbd_control_buffer, sizeof(usbd_control_buffer));
+	usbd_dev = usbd_init(&stm32f103_usb_driver, &dev, &config, usb_strings, 2, usbd_control_buffer, sizeof(usbd_control_buffer));
 	usbd_register_set_config_callback(usbd_dev, cdcacm_set_config);
 
 	for (i = 0; i < 0x80000; i++)
