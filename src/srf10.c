@@ -77,6 +77,8 @@ uint16_t srf10_get_last_measurement(uint32_t i2c, uint8_t sensor) {
 /*
  * range = (43mm * factor) + 43mm
  * factor = range(0x00, 0xff)
+ *
+ * (temporary value)
  */
 void srf10_change_range(uint32_t i2c, uint8_t sensor, uint8_t factor) {
 	uint32_t reg32 __attribute__((unused));
@@ -96,8 +98,10 @@ void srf10_change_range(uint32_t i2c, uint8_t sensor, uint8_t factor) {
 
 /*
  * factor = range(0, 16)
+ *
+ * (temporary value)
  */
-void srf10_change_range(uint32_t i2c, uint8_t sensor, uint8_t factor) {
+void srf10_change_gain(uint32_t i2c, uint8_t sensor, uint8_t factor) {
 	uint32_t reg32 __attribute__((unused));
 
 	i2c_send_start(i2c);

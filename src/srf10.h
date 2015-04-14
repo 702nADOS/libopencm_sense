@@ -25,5 +25,3 @@ uint16_t srf10_get_last_measurement(uint32_t i2c, uint8_t sensor);
 
 void srf10_change_range(uint32_t i2c, uint8_t sensor, uint8_t factor);
 void srf10_change_gain(uint32_t i2c, uint8_t sensor, uint8_t factor);
-
-/*void srf10_change_slave_id(uint32_t i2c, uint8_t sensor);*/
