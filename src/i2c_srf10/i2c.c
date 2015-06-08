@@ -65,6 +65,9 @@ void i2c_write_buffer(uint32_t i2c, uint8_t address, uint8_t reg,
 	i2c_send_address_rw(i2c, address, I2C_WRITE);
 	i2c_send_register(i2c, reg);
 
+	/* data is send directly after selecting the register
+	 * without doing a repeated start.
+	 */
 	for(uint8_t i = 0; i < len; i++) {
 		i2c_send_data(i2c, buffer[i]);
 		if(i != len - 1)
