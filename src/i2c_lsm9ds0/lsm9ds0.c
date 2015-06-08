@@ -1,6 +1,6 @@
 #include <libopencm3/stm32/i2c.h>
 #include "lsm9ds0.h"
-#include "../i2c_srf10/i2c.h"
+#include "../common/i2c.h"
 
 /* global variables */
 lsm9ds0AccelRange_t _accel_mg_lsb;

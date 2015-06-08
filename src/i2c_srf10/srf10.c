@@ -1,6 +1,6 @@
 #include <libopencm3/stm32/i2c.h>
 #include "srf10.h"
-#include "i2c.h"
+#include "../common/i2c.h"
 
 void srf10_start_measurement(uint32_t i2c, uint8_t sensor, uint8_t mode) {
 	i2c_write_buffer(i2c, sensor, 0x00, 1, &mode);
