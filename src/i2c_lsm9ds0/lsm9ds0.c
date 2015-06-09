@@ -137,6 +137,7 @@ lsm9ds0_setup_gyro(uint32_t i2c, uint8_t sensor, lsm9ds0GyroScale_t scale)
 
 void lsm9ds0_init_sensor(uint32_t i2c)
 {
+	/* enable senors */
 	lsm9ds0_enable_accel(i2c, LSM9DS0_ADDRESS_ACCELMAG);
 	lsm9ds0_enable_mag(i2c, LSM9DS0_ADDRESS_ACCELMAG);
 	lsm9ds0_enable_temp(i2c, LSM9DS0_ADDRESS_ACCELMAG);
@@ -145,15 +146,13 @@ void lsm9ds0_init_sensor(uint32_t i2c)
 	/* setup sensors */
 	lsm9ds0_setup_accel(i2c, LSM9DS0_ADDRESS_ACCELMAG, LSM9DS0_ACCELRANGE_2G);
 	lsm9ds0_setup_mag(i2c, LSM9DS0_ADDRESS_ACCELMAG, LSM9DS0_MAGGAIN_2GAUSS);
-	/* TODO sensor required? */
 	lsm9ds0_setup_temp(i2c, LSM9DS0_ADDRESS_ACCELMAG);
 	lsm9ds0_setup_gyro(i2c, LSM9DS0_ADDRESS_GYRO, LSM9DS0_GYROSCALE_245DPS);
 }
 
-lsm9ds0Vector_t lsm9ds0_read_accel(uint32_t i2c, uint8_t sensor)
+void lsm9ds0_read_accel(uint32_t i2c, uint8_t sensor, lsm9ds0Vector_t *acc_data)
 {
 	// Read the accelerometer
-	lsm9ds0Vector_t accelData;
 	uint8_t buffer[6];
 	i2c_read_buffer(i2c, sensor, 0x80 | LSM9DS0_REGISTER_OUT_X_L_A,
 			6, buffer);
@@ -170,17 +169,14 @@ lsm9ds0Vector_t lsm9ds0_read_accel(uint32_t i2c, uint8_t sensor)
 	yhi <<= 8; yhi |= ylo;
 	zhi <<= 8; zhi |= zlo;
 
-	accelData.x = xhi * _accel_mg_lsb;
-	accelData.y = yhi * _accel_mg_lsb;
-	accelData.z = zhi * _accel_mg_lsb;
-
-	return accelData;
+	acc_data->x = xhi * _accel_mg_lsb;
+	acc_data->y = yhi * _accel_mg_lsb;
+	acc_data->z = zhi * _accel_mg_lsb;
 }
 
-lsm9ds0Vector_t lsm9ds0_read_mag(uint32_t i2c, uint8_t sensor)
+void lsm9ds0_read_mag(uint32_t i2c, uint8_t sensor, lsm9ds0Vector_t *mag_data)
 {
 	// Read the magnetometer
-	lsm9ds0Vector_t magData;
 	byte buffer[6];
 	i2c_read_buffer(i2c, sensor, 0x80 | LSM9DS0_REGISTER_OUT_X_L_M,
 			6, buffer);
@@ -197,19 +193,15 @@ lsm9ds0Vector_t lsm9ds0_read_mag(uint32_t i2c, uint8_t sensor)
 	yhi <<= 8; yhi |= ylo;
 	zhi <<= 8; zhi |= zlo;
 
-	magData.x = (xhi * _mag_mgauss_lsb) / 1000.0;
-	magData.y = (yhi * _mag_mgauss_lsb) / 1000.0;
-	magData.z = (zhi * _mag_mgauss_lsb) / 1000.0;
-
-	return magData;
+	mag_data->x = (xhi * _mag_mgauss_lsb) / 1000.0;
+	mag_data->y = (yhi * _mag_mgauss_lsb) / 1000.0;
+	mag_data->z = (zhi * _mag_mgauss_lsb) / 1000.0;
 }
 
-lsm9ds0Vector_t lsm9ds0_read_gyro(uint32_t i2c, uint8_t sensor)
+void lsm9ds0_read_gyro(uint32_t i2c, uint8_t sensor, lsm9ds0Vector_t *gyro_data)
 {
 	// Read gyro
-	lsm9ds0Vector_t = gyroData;
 	byte buffer[6];
-
 
 	i2c_read_buffer(i2c, sensor, 0x80 | LSM9DS0_REGISTER_OUT_X_L_G,
 			6, buffer);
@@ -225,14 +217,12 @@ lsm9ds0Vector_t lsm9ds0_read_gyro(uint32_t i2c, uint8_t sensor)
 	yhi <<= 8; yhi |= ylo;
 	zhi <<= 8; zhi |= zlo;
 
-	gyroData.x = xhi * _gyro_dps_digit;
-	gyroData.y = yhi * _gyro_dps_digit;
-	gyroData.z = zhi * _gyro_dps_digit;
-
-	return gyroData;
+	gyro_data->x = xhi * _gyro_dps_digit;
+	gyro_data->y = yhi * _gyro_dps_digit;
+	gyro_data->z = zhi * _gyro_dps_digit;
 }
 
-float lsm9ds0_read_temp(uint32_t i2c, uint8_t sensor)
+void lsm9ds0_read_temp(uint32_t i2c, uint8_t sensor, float *temp_data)
 {
 	uint8_t buffer[2];
 	i2c_read_buffer(i2c, sensor, 0x80 | LSM9DS0_REGISTER_TEMP_OUT_L_XM,
@@ -241,11 +231,5 @@ float lsm9ds0_read_temp(uint32_t i2c, uint8_t sensor)
 	result <<= 8;
 	result |= buffer[0];
 
-	float temperature;
-	// This is just a guess since the staring point (21C here)
-	// isn't documented :(
-	temperature = 21.0 + (float)result/8;
-	//temperature /= LSM9DS0_TEMP_LSB_DEGREE_CELSIUS;
-
-	return temperature;
+	*temp_data = 21.0 + (float)result/8;
 }

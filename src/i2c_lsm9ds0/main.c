@@ -8,13 +8,6 @@
 #include <libopencm3/usb/cdc.h>
 #include "lsm9ds0.h"
 
-void copy_vector_from_to(lsm9ds0Vector_t * src, lsm9ds0Vector_t * dest)
-{
-	dest[0] = src[0];
-	dest[1] = src[1];
-	dest[2] = src[2];
-}
-
 void print_sensor_data_cplx(const char *name, lsm9ds0Vector_t * vector,
 			    int len, char * buf)
 {
@@ -201,22 +194,20 @@ static void cdcacm_data_rx_cb(usbd_device *usbd_dev, uint8_t ep)
 		__asm__("nop");
 
 	/* prepare message. */
-	float temp = lsm9ds0_read_temp(I2C1, LSM9DS0_ADDRESS_ACCELMAG);
+	float temp;
 	lsm9ds0Vector_t acc, mag, gyro;
 
-	/* TODO lsm9ds0_read_accel(uint32_t, uint8_t, lsm9ds0Vector_t *)  */
-	copy_vector_from_to(lsm9ds0_read_accel(I2C1, LSM9DS0_ADDRESS_ACCELMAG), acc);
-	copy_vector_from_to(lsm9ds0_read_mag(I2C1, LSM9DS0_ADDRESS_ACCELMAG), mag);
-	/* FIXME Register is wrong */
-	copy_vector_from_to(lsm9ds0_read_gyro(I2C1, LSM9DS0_ADDRESS_ACCELMAG), gyro);
+	lsm9ds0_read_temp(I2C1, LSM9DS0_ADDRESS_ACCELMAG, &temp);
+	lsm9ds0_read_accel(I2C1, LSM9DS0_ADDRESS_ACCELMAG, &acc);
+	lsm9ds0_read_mag(I2C1, LSM9DS0_ADDRESS_ACCELMAG, &mag);
+	lsm9ds0_read_gyro(I2C1, LSM9DS0_ADDRESS_GYRO, &gyro);
 
-	/* FIXME buffer length */
-	char buf[64];
+	char buf[128];
 	snprintf(buf, strlen(buf),
-		 "temp: %f C\n \
-accel: x: %f y: %f z: %f\n \
-mag: x: %f y: %f z: %f\n \
-gyro: x: %f y: %f z: %f\n",
+		 "temp: %2.2f C\n \
+accel: x:%4.2f y:%4.2f z:%4.2f\n \
+mag: x:%4.2f y:%4.2f z:%4.2f\n \
+gyro: x:%4.2f y:%4.2f z:%4.2f\n",
 		 temp,
 		 acc.x, acc.y, acc.z,
 		 mag.x, mag.y, mag.z,
@@ -276,8 +267,6 @@ int main(void) {
 	gpio_set_mode(GPIOC, GPIO_MODE_OUTPUT_2_MHZ,
 		      GPIO_CNF_OUTPUT_PUSHPULL, GPIO11);
 
-	/* TODO GYRO is another sensor address */
-	/* TODO move second parameter to init_sensor */
 	lsm9ds0_init_sensor(I2C1);
 
 	usbd_dev = usbd_init(&stm32f103_usb_driver, &dev, &config, usb_strings, 2, usbd_control_buffer, sizeof(usbd_control_buffer));

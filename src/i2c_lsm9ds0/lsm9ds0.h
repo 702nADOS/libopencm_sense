@@ -113,12 +113,9 @@ typedef struct vector_s
 } lsm9ds0Vector_t;
 
 void lsm9ds0_init_sensor(uint32_t i2c);
-/* obsolete */
-void lsm9ds0_setup_temp(uint32_t i2c, uint8_t sensor);
-
-lsm9ds0Vector_t lsm9ds0_read_accel(uint32_t i2c, uint8_t sensor);
-lsm9ds0Vector_t lsm9ds0_read_mag(uint32_t i2c, uint8_t sensor);
-lsm9ds0Vector_t lsm9ds0_read_gyro(uint32_t i2c, uint8_t sensor);
-float lsm9ds0_read_temp(uint32_t i2c, uint8_t sensor);
+void lsm9ds0_read_accel(uint32_t i2c, uint8_t sensor, lsm9ds0Vector_t *acc_data);
+void lsm9ds0_read_mag(uint32_t i2c, uint8_t sensor, lsm9ds0Vector_t *mag_data);
+void lsm9ds0_read_gyro(uint32_t i2c, uint8_t sensor, lsm9ds0Vector_t *gyro_data);
+void lsm9ds0_read_temp(uint32_t i2c, uint8_t sensor, float *temp_data);
 
 #endif
