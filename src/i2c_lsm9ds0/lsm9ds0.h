@@ -112,7 +112,7 @@ typedef struct vector_s
 	float z;
 } lsm9ds0Vector_t;
 
-void lsm9ds0_init_sensor(uint32_t i2c, uint8_t sensor);
+void lsm9ds0_init_sensor(uint32_t i2c);
 /* obsolete */
 void lsm9ds0_setup_temp(uint32_t i2c, uint8_t sensor);
 

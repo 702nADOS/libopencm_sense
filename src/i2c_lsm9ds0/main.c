@@ -204,6 +204,7 @@ static void cdcacm_data_rx_cb(usbd_device *usbd_dev, uint8_t ep)
 	float temp = lsm9ds0_read_temp(I2C1, LSM9DS0_ADDRESS_ACCELMAG);
 	lsm9ds0Vector_t acc, mag, gyro;
 
+	/* TODO lsm9ds0_read_accel(uint32_t, uint8_t, lsm9ds0Vector_t *)  */
 	copy_vector_from_to(lsm9ds0_read_accel(I2C1, LSM9DS0_ADDRESS_ACCELMAG), acc);
 	copy_vector_from_to(lsm9ds0_read_mag(I2C1, LSM9DS0_ADDRESS_ACCELMAG), mag);
 	/* FIXME Register is wrong */
@@ -277,7 +278,7 @@ int main(void) {
 
 	/* TODO GYRO is another sensor address */
 	/* TODO move second parameter to init_sensor */
-	lsm9ds0_init_sensor(I2C1, LSM9DS0_ADDRESS_ACCELMAG);
+	lsm9ds0_init_sensor(I2C1);
 
 	usbd_dev = usbd_init(&stm32f103_usb_driver, &dev, &config, usb_strings, 2, usbd_control_buffer, sizeof(usbd_control_buffer));
 	usbd_register_set_config_callback(usbd_dev, cdcacm_set_config);

@@ -135,18 +135,19 @@ lsm9ds0_setup_gyro(uint32_t i2c, uint8_t sensor, lsm9ds0GyroScale_t scale)
 	}
 }
 
-void lsm9ds0_init_sensor(uint32_t i2c, uint8_t sensor)
+void lsm9ds0_init_sensor(uint32_t i2c)
 {
-	lsm9ds0_enable_accel(i2c,  sensor);
-	lsm9ds0_enable_mag(i2c, sensor);
-	lsm9ds0_enable_temp(i2c, sensor);
-	lsm9ds0_enable_gyro(i2c, sensor);
+	lsm9ds0_enable_accel(i2c, LSM9DS0_ADDRESS_ACCELMAG);
+	lsm9ds0_enable_mag(i2c, LSM9DS0_ADDRESS_ACCELMAG);
+	lsm9ds0_enable_temp(i2c, LSM9DS0_ADDRESS_ACCELMAG);
+	lsm9ds0_enable_gyro(i2c, LSM9DS0_ADDRESS_GYRO);
 
 	/* setup sensors */
-	lsm9ds0_setup_accel(i2c, sensor, LSM9DS0_ACCELRANGE_2G);
-	lsm9ds0_setup_mag(i2c, sensor, LSM9DS0_MAGGAIN_2GAUSS);
-	lsm9ds0_setup_temp(i2c, sensor);
-	lsm9ds0_setup_gyro(i2c, sensor, LSM9DS0_GYROSCALE_245DPS);
+	lsm9ds0_setup_accel(i2c, LSM9DS0_ADDRESS_ACCELMAG, LSM9DS0_ACCELRANGE_2G);
+	lsm9ds0_setup_mag(i2c, LSM9DS0_ADDRESS_ACCELMAG, LSM9DS0_MAGGAIN_2GAUSS);
+	/* TODO sensor required? */
+	lsm9ds0_setup_temp(i2c, LSM9DS0_ADDRESS_ACCELMAG);
+	lsm9ds0_setup_gyro(i2c, LSM9DS0_ADDRESS_GYRO, LSM9DS0_GYROSCALE_245DPS);
 }
 
 lsm9ds0Vector_t lsm9ds0_read_accel(uint32_t i2c, uint8_t sensor)
