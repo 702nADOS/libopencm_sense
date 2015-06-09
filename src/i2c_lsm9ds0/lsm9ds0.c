@@ -155,25 +155,25 @@ lsm9ds0Vector_t lsm9ds0_read_accel(uint32_t i2c, uint8_t sensor)
 			6, buffer);
 
 	uint8_t xlo = buffer[0];
-	int16_t xhi = buffer[1];
+	uint16_t xhi = buffer[1];
 	uint8_t ylo = buffer[2];
-	int16_t yhi = buffer[3];
+	uint16_t yhi = buffer[3];
 	uint8_t zlo = buffer[4];
-	int16_t zhi = buffer[5];
+	uint16_t zhi = buffer[5];
 
 	// Shift values to create properly formed integer (low byte first)
 	xhi <<= 8; xhi |= xlo;
 	yhi <<= 8; yhi |= ylo;
 	zhi <<= 8; zhi |= zlo;
 
-	accelData.x = xhi;
-	accelData.y = yhi;
-	accelData.z = zhi;
+	accelData.x = xhi * _accel_mg_lsb;
+	accelData.y = yhi * _accel_mg_lsb;
+	accelData.z = zhi * _accel_mg_lsb;
 
 	return accelData;
 }
 
-uint16_t lsm9ds0_read_temp(uint32_t i2c, uint8_t sensor)
+float lsm9ds0_read_temp(uint32_t i2c, uint8_t sensor)
 {
 	uint8_t buffer[2];
 	i2c_read_buffer(i2c, sensor, 0x80 | LSM9DS0_REGISTER_TEMP_OUT_L_XM,
@@ -181,5 +181,12 @@ uint16_t lsm9ds0_read_temp(uint32_t i2c, uint8_t sensor)
 	uint16_t result = buffer[1];
 	result <<= 8;
 	result |= buffer[0];
-	return result;
+
+	float temperature;
+	// This is just a guess since the staring point (21C here)
+	// isn't documented :(
+	temperature = 21.0 + (float)result/8;
+	//temperature /= LSM9DS0_TEMP_LSB_DEGREE_CELSIUS;
+
+	return temperature;
 }
