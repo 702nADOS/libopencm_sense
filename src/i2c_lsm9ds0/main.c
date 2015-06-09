@@ -8,6 +8,20 @@
 #include <libopencm3/usb/cdc.h>
 #include "lsm9ds0.h"
 
+void copy_vector_from_to(lsm9ds0Vector_t * src, lsm9ds0Vector_t * dest)
+{
+	dest[0] = src[0];
+	dest[1] = src[1];
+	dest[2] = src[2];
+}
+
+void print_sensor_data_cplx(const char *name, lsm9ds0Vector_t * vector,
+			    int len, char * buf)
+{
+	snprintf(buf, len, "%s\tx: %f y: %f z: %f\n", name, vector[0],
+		 vector[1], vector[2]);
+}
+
 static const struct usb_device_descriptor dev = {
 	.bLength = USB_DT_DEVICE_SIZE,
 	.bDescriptorType = USB_DT_DEVICE,
@@ -187,8 +201,26 @@ static void cdcacm_data_rx_cb(usbd_device *usbd_dev, uint8_t ep)
 		__asm__("nop");
 
 	/* prepare message. */
+	float temp = lsm9ds0_read_temp(I2C1, LSM9DS0_ADDRESS_ACCELMAG);
+	lsm9ds0Vector_t acc, mag, gyro;
+
+	copy_vector_from_to(lsm9ds0_read_accel(I2C1, LSM9DS0_ADDRESS_ACCELMAG), acc);
+	copy_vector_from_to(lsm9ds0_read_mag(I2C1, LSM9DS0_ADDRESS_ACCELMAG), mag);
+	/* FIXME Register is wrong */
+	copy_vector_from_to(lsm9ds0_read_gyro(I2C1, LSM9DS0_ADDRESS_ACCELMAG), gyro);
+
+	/* FIXME buffer length */
 	char buf[64];
-	sprintf(buf, "temperature: %u\r\n", lsm9ds0_read_temp(I2C1,  LSM9DS0_ADDRESS_ACCELMAG));
+	snprintf(buf, strlen(buf),
+		 "temp: %f C\n \
+accel: x: %f y: %f z: %f\n \
+mag: x: %f y: %f z: %f\n \
+gyro: x: %f y: %f z: %f\n",
+		 temp,
+		 acc.x, acc.y, acc.z,
+		 mag.x, mag.y, mag.z,
+		 gyro.x, gyro.y, gyro.z
+		);
 
 	/* write packet. */
 	usbd_ep_write_packet(usbd_dev, 0x82, buf, strlen(buf));
@@ -243,8 +275,9 @@ int main(void) {
 	gpio_set_mode(GPIOC, GPIO_MODE_OUTPUT_2_MHZ,
 		      GPIO_CNF_OUTPUT_PUSHPULL, GPIO11);
 
-	/* srf10_change_range(I2C1, SRF10_SENSOR0, 0x06); */
-	lsm9ds0_setup_temp(I2C1, LSM9DS0_ADDRESS_ACCELMAG);
+	/* TODO GYRO is another sensor address */
+	/* TODO move second parameter to init_sensor */
+	lsm9ds0_init_sensor(I2C1, LSM9DS0_ADDRESS_ACCELMAG);
 
 	usbd_dev = usbd_init(&stm32f103_usb_driver, &dev, &config, usb_strings, 2, usbd_control_buffer, sizeof(usbd_control_buffer));
 	usbd_register_set_config_callback(usbd_dev, cdcacm_set_config);
