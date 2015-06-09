@@ -148,7 +148,7 @@ void lsm9ds0_init_sensor(uint32_t i2c, uint8_t sensor)
 
 lsm9ds0Vector_t lsm9ds0_read_accel(uint32_t i2c, uint8_t sensor)
 {
-  // Read the accelerometer
+	// Read the accelerometer
 	lsm9ds0Vector_t accelData;
 	uint8_t buffer[6];
 	i2c_read_buffer(i2c, sensor, 0x80 | LSM9DS0_REGISTER_OUT_X_L_A,
@@ -171,6 +171,33 @@ lsm9ds0Vector_t lsm9ds0_read_accel(uint32_t i2c, uint8_t sensor)
 	accelData.z = zhi * _accel_mg_lsb;
 
 	return accelData;
+}
+
+lsm9ds0Vector_t lsm9ds0_read_mag(uint32_t i2c, uint8_t sensor)
+{
+	// Read the magnetometer
+	lsm9ds0Vector_t magData;
+	byte buffer[6];
+	i2c_read_buffer(i2c, sensor, 0x80 | LSM9DS0_REGISTER_OUT_X_L_M,
+			6, buffer);
+
+	uint8_t xlo = buffer[0];
+	uint16_t xhi = buffer[1];
+	uint8_t ylo = buffer[2];
+	uint16_t yhi = buffer[3];
+	uint8_t zlo = buffer[4];
+	uint16_t zhi = buffer[5];
+
+	// Shift values to create properly formed integer (low byte first)
+	xhi <<= 8; xhi |= xlo;
+	yhi <<= 8; yhi |= ylo;
+	zhi <<= 8; zhi |= zlo;
+
+	magData.x = xhi * _mag_mgauss_lsb;
+	magData.y = yhi * _mag_mgauss_lsb;
+	magData.z = zhi * _mag_mgauss_lsb;
+
+	return magData;
 }
 
 float lsm9ds0_read_temp(uint32_t i2c, uint8_t sensor)
