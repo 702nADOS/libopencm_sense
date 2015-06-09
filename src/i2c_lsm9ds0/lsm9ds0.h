@@ -118,6 +118,7 @@ void lsm9ds0_setup_temp(uint32_t i2c, uint8_t sensor);
 
 lsm9ds0Vector_t lsm9ds0_read_accel(uint32_t i2c, uint8_t sensor);
 lsm9ds0Vector_t lsm9ds0_read_mag(uint32_t i2c, uint8_t sensor);
+lsm9ds0Vector_t lsm9ds0_read_gyro(uint32_t i2c, uint8_t sensor);
 float lsm9ds0_read_temp(uint32_t i2c, uint8_t sensor);
 
 #endif

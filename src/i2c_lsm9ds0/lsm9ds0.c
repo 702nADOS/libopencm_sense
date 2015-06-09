@@ -40,7 +40,10 @@ void lsm9ds0_enable_temp(uint32_t i2c, uint8_t sensor)
 
 void lsm9ds0_enable_gyro(uint32_t i2c, uint8_t sensor)
 {
-	/* TODO */
+	// enable gyro continuous
+	uint8_t reg_value = 0x0F;
+	i2c_write_buffer(i2c, sensor, LSM9DS0_REGISTER_CTRL_REG1_G,
+			 1, &reg_value); // on XYZ
 }
 
 lsm9ds0_setup_accel(uint32_t i2c, uint8_t sensor, lsm9ds0AccelRange_t range)
@@ -193,11 +196,39 @@ lsm9ds0Vector_t lsm9ds0_read_mag(uint32_t i2c, uint8_t sensor)
 	yhi <<= 8; yhi |= ylo;
 	zhi <<= 8; zhi |= zlo;
 
-	magData.x = xhi * _mag_mgauss_lsb;
-	magData.y = yhi * _mag_mgauss_lsb;
-	magData.z = zhi * _mag_mgauss_lsb;
+	magData.x = (xhi * _mag_mgauss_lsb) / 1000.0;
+	magData.y = (yhi * _mag_mgauss_lsb) / 1000.0;
+	magData.z = (zhi * _mag_mgauss_lsb) / 1000.0;
 
 	return magData;
+}
+
+lsm9ds0Vector_t lsm9ds0_read_gyro(uint32_t i2c, uint8_t sensor)
+{
+	// Read gyro
+	lsm9ds0Vector_t = gyroData;
+	byte buffer[6];
+
+
+	i2c_read_buffer(i2c, sensor, 0x80 | LSM9DS0_REGISTER_OUT_X_L_G,
+			6, buffer);
+	uint8_t xlo = buffer[0];
+	uint16_t xhi = buffer[1];
+	uint8_t ylo = buffer[2];
+	uint16_t yhi = buffer[3];
+	uint8_t zlo = buffer[4];
+	uint16_t zhi = buffer[5];
+
+	// Shift values to create properly formed integer (low byte first)
+	xhi <<= 8; xhi |= xlo;
+	yhi <<= 8; yhi |= ylo;
+	zhi <<= 8; zhi |= zlo;
+
+	gyroData.x = xhi * _gyro_dps_digit;
+	gyroData.y = yhi * _gyro_dps_digit;
+	gyroData.z = zhi * _gyro_dps_digit;
+
+	return gyroData;
 }
 
 float lsm9ds0_read_temp(uint32_t i2c, uint8_t sensor)
