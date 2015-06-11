@@ -8,13 +8,6 @@
 #include <libopencm3/usb/cdc.h>
 #include "mpl3115a2.h"
 
-void print_sensor_data_cplx(const char *name, lsm9ds0Vector_t * vector,
-			    int len, char * buf)
-{
-	snprintf(buf, len, "%s\tx: %f y: %f z: %f\n", name, vector[0],
-		 vector[1], vector[2]);
-}
-
 static const struct usb_device_descriptor dev = {
 	.bLength = USB_DT_DEVICE_SIZE,
 	.bDescriptorType = USB_DT_DEVICE,
@@ -145,7 +138,7 @@ static const struct usb_config_descriptor config = {
 };
 
 static const char *usb_strings[] = {
-	"STM32 / LSM9DS0",
+	"STM32 / MPL3115A2",
 	"DEMO"
 };
 
@@ -194,25 +187,17 @@ static void cdcacm_data_rx_cb(usbd_device *usbd_dev, uint8_t ep)
 		__asm__("nop");
 
 	/* prepare message. */
-	float temp;
-	lsm9ds0Vector_t acc, mag, gyro;
+	float temp, pressure, altitude;
+	mpl3115a2_get_pressure(I2C1, MPL3115A2_ADDRESS, &pressure);
+	mpl3115a2_get_altitude(I2C1, MPL3115A2_ADDRESS, &altitude);
+	mpl3115a2_get_temperature(I2C1, MPL3115A2_ADDRESS, &temp);
 
-	lsm9ds0_read_temp(I2C1, LSM9DS0_ADDRESS_ACCELMAG, &temp);
-	lsm9ds0_read_accel(I2C1, LSM9DS0_ADDRESS_ACCELMAG, &acc);
-	lsm9ds0_read_mag(I2C1, LSM9DS0_ADDRESS_ACCELMAG, &mag);
-	lsm9ds0_read_gyro(I2C1, LSM9DS0_ADDRESS_GYRO, &gyro);
-
-	char buf[128];
+	char buf[64];
 	snprintf(buf, strlen(buf),
 		 "temp: %2.2f C\n \
-accel: x:%4.2f y:%4.2f z:%4.2f\n \
-mag: x:%4.2f y:%4.2f z:%4.2f\n \
-gyro: x:%4.2f y:%4.2f z:%4.2f\n",
-		 temp,
-		 acc.x, acc.y, acc.z,
-		 mag.x, mag.y, mag.z,
-		 gyro.x, gyro.y, gyro.z
-		);
+alt: %2.2f\n
+pres: %2.2f\n"
+		 temp, altitude, pressure);
 
 	/* write packet. */
 	usbd_ep_write_packet(usbd_dev, 0x82, buf, strlen(buf));
@@ -267,7 +252,7 @@ int main(void) {
 	gpio_set_mode(GPIOC, GPIO_MODE_OUTPUT_2_MHZ,
 		      GPIO_CNF_OUTPUT_PUSHPULL, GPIO11);
 
-	lsm9ds0_init_sensor(I2C1);
+	mpl3115a2_init_sensor(I2C1, MPL3115A2_ADDRESS);
 
 	usbd_dev = usbd_init(&stm32f103_usb_driver, &dev, &config, usb_strings, 2, usbd_control_buffer, sizeof(usbd_control_buffer));
 	usbd_register_set_config_callback(usbd_dev, cdcacm_set_config);
