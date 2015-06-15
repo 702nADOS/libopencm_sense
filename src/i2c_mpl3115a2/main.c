@@ -195,8 +195,8 @@ static void cdcacm_data_rx_cb(usbd_device *usbd_dev, uint8_t ep)
 	char buf[64];
 	snprintf(buf, strlen(buf),
 		 "temp: %2.2f C\n \
-alt: %2.2f\n
-pres: %2.2f\n"
+alt: %2.2f\n \
+pres: %2.2f\n",
 		 temp, altitude, pressure);
 
 	/* write packet. */
@@ -224,8 +224,8 @@ static void gpio_setup(void) {
 	rcc_peripheral_enable_clock(&RCC_APB1ENR , RCC_APB1ENR_I2C1EN);
 
 	gpio_set_mode(GPIOB, GPIO_MODE_OUTPUT_50_MHZ,
-		      GPIO_CNF_OUTPUT_ALTFN_OPENDRAIN,
-		      GPIO_I2C1_SCL | GPIO_I2C1_SDA);
+			  GPIO_CNF_OUTPUT_ALTFN_OPENDRAIN,
+			  GPIO_I2C1_SCL | GPIO_I2C1_SDA);
 
 	i2c_set_clock_frequency(I2C1, I2C_CR2_FREQ_36MHZ);
 
@@ -250,7 +250,7 @@ int main(void) {
 
 	gpio_set(GPIOC, GPIO11);
 	gpio_set_mode(GPIOC, GPIO_MODE_OUTPUT_2_MHZ,
-		      GPIO_CNF_OUTPUT_PUSHPULL, GPIO11);
+			  GPIO_CNF_OUTPUT_PUSHPULL, GPIO11);
 
 	mpl3115a2_init_sensor(I2C1, MPL3115A2_ADDRESS);
 

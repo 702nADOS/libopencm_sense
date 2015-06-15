@@ -2,32 +2,46 @@
 #include "mpl3115a2.h"
 #include "../common/i2c.h"
 
+/* TODO: Wait via systick */
+static void delay(uint32_t t)
+{
+	t *= 1000;
+	while (t--) ;
+}
+
 void mpl3115a2_init_sensor(uint32_t i2c, uint8_t sensor)
 {
+	uint8_t mode = 0;
+	mode |= MPL3115A2_CTRL_REG1_SBYB |
+		MPL3115A2_CTRL_REG1_OS128 |
+		MPL3115A2_CTRL_REG1_ALT;
 	i2c_write_buffer(i2c, sensor, MPL3115A2_CTRL_REG1,
-			 1, MPL3115A2_CTRL_REG1_SBYB |
-			 MPL3115A2_CTRL_REG1_OS128 |
-			 MPL3115A2_CTRL_REG1_ALT);
+			 1, &mode);
 
+	mode = 0;
+	mode |=  MPL3115A2_PT_DATA_CFG_TDEFE |
+		MPL3115A2_PT_DATA_CFG_PDEFE |
+		MPL3115A2_PT_DATA_CFG_DREM;
 	i2c_write_buffer(i2c, sensor, MPL3115A2_PT_DATA_CFG,
-			 1, MPL3115A2_PT_DATA_CFG_TDEFE |
-			 MPL3115A2_PT_DATA_CFG_PDEFE |
-			 MPL3115A2_PT_DATA_CFG_DREM);
+			 1, &mode);
 }
 
 void mpl3115a2_get_pressure(uint32_t i2c, uint8_t sensor, float *result)
 {
 	uint8_t pressure[3];
-	uint32_t p;
+	uint32_t p = 0;
+	uint8_t mode = 0;
+	mode |= MPL3115A2_CTRL_REG1_SBYB |
+		MPL3115A2_CTRL_REG1_OS128 |
+		MPL3115A2_CTRL_REG1_BAR;
 	i2c_write_buffer(i2c, sensor, MPL3115A2_CTRL_REG1,
-			 1, MPL3115A2_CTRL_REG1_SBYB |
-			 MPL3115A2_CTRL_REG1_OS128 |
-			 MPL3115A2_CTRL_REG1_BAR);
+			 1, &mode);
 
 	uint8_t sta = 0;
 	while (! (sta & MPL3115A2_REGISTER_STATUS_PDR)) {
-		sta = read8(MPL3115A2_REGISTER_STATUS);
-		/* does this function exists */
+		i2c_read_buffer(i2c, sensor, MPL3115A2_REGISTER_STATUS,
+						1, &sta);
+		/* ms */
 		delay(10);
 	}
 
@@ -45,15 +59,19 @@ void mpl3115a2_get_pressure(uint32_t i2c, uint8_t sensor, float *result)
 void mpl3115a2_get_altitude(uint32_t i2c, uint8_t sensor, float *result)
 {
 	uint8_t altitude[3];
-	uint32_t a;
+	uint32_t a = 0;
+	uint8_t mode = 0;
+	mode |= MPL3115A2_CTRL_REG1_SBYB |
+		MPL3115A2_CTRL_REG1_OS128 |
+		MPL3115A2_CTRL_REG1_ALT;
+
 	i2c_write_buffer(i2c, sensor, MPL3115A2_CTRL_REG1,
-			 1, MPL3115A2_CTRL_REG1_SBYB |
-			 MPL3115A2_CTRL_REG1_OS128 |
-			 MPL3115A2_CTRL_REG1_ALT);
+					 1, &mode);
 
 	uint8_t sta = 0;
 	while (! (sta & MPL3115A2_REGISTER_STATUS_PDR)) {
-		sta = read8(MPL3115A2_REGISTER_STATUS);
+		i2c_read_buffer(i2c, sensor, MPL3115A2_REGISTER_STATUS,
+						1, &sta);
 		/* does this function exists */
 		delay(10);
 	}
@@ -74,11 +92,12 @@ void mpl3115a2_get_altitude(uint32_t i2c, uint8_t sensor, float *result)
 void mpl3115a2_get_temperature(uint32_t i2c, uint8_t sensor, float *result)
 {
 	uint8_t temp[2];
-	uint16_t t;
+	uint16_t t = 0;
 
 	uint8_t sta = 0;
 	while (! (sta & MPL3115A2_REGISTER_STATUS_TDR)) {
-		sta = read8(MPL3115A2_REGISTER_STATUS);
+		i2c_read_buffer(i2c, sensor, MPL3115A2_REGISTER_STATUS,
+						1, &sta);
 		/* does this function exists */
 		delay(10);
 	}
