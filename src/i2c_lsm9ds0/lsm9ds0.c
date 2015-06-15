@@ -46,7 +46,7 @@ void lsm9ds0_enable_gyro(uint32_t i2c, uint8_t sensor)
 			 1, &reg_value); // on XYZ
 }
 
-lsm9ds0_setup_accel(uint32_t i2c, uint8_t sensor, lsm9ds0AccelRange_t range)
+void lsm9ds0_setup_accel(uint32_t i2c, uint8_t sensor, lsm9ds0AccelRange_t range)
 {
 	uint8_t reg;
 	i2c_read_buffer(i2c, sensor, LSM9DS0_REGISTER_CTRL_REG2_XM,
@@ -77,7 +77,7 @@ lsm9ds0_setup_accel(uint32_t i2c, uint8_t sensor, lsm9ds0AccelRange_t range)
 	}
 }
 
-lsm9ds0_setup_mag(uint32_t i2c, uint8_t sensor, lsm9ds0MagGain_t gain)
+void lsm9ds0_setup_mag(uint32_t i2c, uint8_t sensor, lsm9ds0MagGain_t gain)
 {
 	uint8_t reg;
 	i2c_read_buffer(i2c, sensor, LSM9DS0_REGISTER_CTRL_REG6_XM,
@@ -105,12 +105,12 @@ lsm9ds0_setup_mag(uint32_t i2c, uint8_t sensor, lsm9ds0MagGain_t gain)
 	}
 }
 
-lsm9ds0_setup_temp(uint32_t i2c, uint8_t sensor)
+void lsm9ds0_setup_temp(uint32_t i2c, uint8_t sensor)
 {
 	/* only for convenience */
 }
 
-lsm9ds0_setup_gyro(uint32_t i2c, uint8_t sensor, lsm9ds0GyroScale_t scale)
+void lsm9ds0_setup_gyro(uint32_t i2c, uint8_t sensor, lsm9ds0GyroScale_t scale)
 {
 	uint8_t reg;
 	i2c_read_buffer(i2c, sensor, LSM9DS0_REGISTER_CTRL_REG4_G,
@@ -177,7 +177,7 @@ void lsm9ds0_read_accel(uint32_t i2c, uint8_t sensor, lsm9ds0Vector_t *acc_data)
 void lsm9ds0_read_mag(uint32_t i2c, uint8_t sensor, lsm9ds0Vector_t *mag_data)
 {
 	// Read the magnetometer
-	byte buffer[6];
+	uint8_t buffer[6];
 	i2c_read_buffer(i2c, sensor, 0x80 | LSM9DS0_REGISTER_OUT_X_L_M,
 			6, buffer);
 
@@ -201,7 +201,7 @@ void lsm9ds0_read_mag(uint32_t i2c, uint8_t sensor, lsm9ds0Vector_t *mag_data)
 void lsm9ds0_read_gyro(uint32_t i2c, uint8_t sensor, lsm9ds0Vector_t *gyro_data)
 {
 	// Read gyro
-	byte buffer[6];
+	uint8_t buffer[6];
 
 	i2c_read_buffer(i2c, sensor, 0x80 | LSM9DS0_REGISTER_OUT_X_L_G,
 			6, buffer);
