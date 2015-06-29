@@ -1,18 +1,18 @@
-LiL4
-====
-Linux & L4-Mikrokern
+The libopencm_sense project aims to create an open-source sensor library for various ARM Cortex-M microcontrollers.
 
-Hardware
---------
-* STM32-H103 (microcontroller)
-* SRF10 (ultrasonic sensor)
-* HS-53 (servo)
+Currently (at least partly) supported microcontrollers:
+see https://github.com/libopencm3/
 
-Library
--------
-The code uses the libopencm3 Library (https://github.com/libopencm3).
+# Goal
 
-Branches
---------
-* master (should work just fine for you.)
-* ...
+Support several Adafruit sensors on Cortex-M microcontrollers.
+
+# License
+
+The libopencm_sense code is released under the terms of the GNU General Public License (GPL), version 3 or later.
+
+See LICENSE for details.
+
+# Website
+
+http://gitfri3ndz.github.io/libopencm_sense
