@@ -15,4 +15,4 @@ See LICENSE for details.
 
 # Website
 
-http://gitfri3ndz.github.io/libopencm_sense
+http://702nados.github.io/libopencm_sense
